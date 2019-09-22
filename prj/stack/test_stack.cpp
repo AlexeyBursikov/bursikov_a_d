@@ -4,9 +4,12 @@
 TEST(StackTest, AddCheckPopElement)
 {
   Stack stack;
+  ASSERT_TRUE(stack.isEmpty());
   stack.push(10);
+  ASSERT_FALSE(stack.isEmpty());
   ASSERT_EQ(10, stack.top());
   stack.pop();
+  ASSERT_TRUE(stack.isEmpty());
 }
 
 TEST(StackTest, AddElements)
@@ -16,13 +19,17 @@ TEST(StackTest, AddElements)
     stack.push(i);
   }
 
-  for (int i = 99; i > 0; i--){
+  ASSERT_FALSE(stack.isEmpty());
+
+  for (int i = 99; i >= 0; i--){
     ASSERT_EQ(i, stack.top());
     stack.pop();
   }
+
+  ASSERT_TRUE(stack.isEmpty());
 }
 
-TEST(StackTest, PopElements){
+TEST(StackTest, PopElement){
     Stack stack;
     ASSERT_TRUE(stack.isEmpty());
     stack.pop();
@@ -31,14 +38,37 @@ TEST(StackTest, PopElements){
 
 TEST(StackTest, TopEmpty){
     Stack stack;
+    bool er = false;
     ASSERT_TRUE(stack.isEmpty());
     try{
         stack.top();
     }
-    catch(std::exception ex){
-        ASSERT_FALSE(dynamic_cast<std::out_of_range*>(&ex));
+    catch(std::out_of_range ex){
+        er = true;
+    }
+    ASSERT_TRUE(er);
+    ASSERT_TRUE(stack.isEmpty());
+}
+
+TEST(StackTest, CopyStack){
+    Stack stack;
+    for (int i = 0; i < 100; i++){
+      stack.push(i);
+    }
+
+    Stack stack2(stack);
+
+    for (int i = 99; i >= 0; i--){
+      ASSERT_EQ(i, stack.top());
+      stack.pop();
     }
     ASSERT_TRUE(stack.isEmpty());
+
+    for (int i = 99; i >= 0; i--){
+      ASSERT_EQ(i, stack2.top());
+      stack2.pop();
+    }
+    ASSERT_TRUE(stack2.isEmpty());
 }
 
 int main(int argc, char **argv){

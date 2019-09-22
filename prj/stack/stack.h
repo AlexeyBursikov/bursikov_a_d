@@ -1,14 +1,14 @@
 #pragma once
-#include <list>
+#ifndef STACK_H
+#define STACK_H
 
 class Stack
 {
   public:
     Stack();
-    Stack(const Stack &) = default;
-    ~Stack() = default;
-
-    Stack &operator=(const Stack &) = default;
+    Stack(const Stack &);
+    Stack& operator=(const Stack &);
+    ~Stack();
 
     void push(int x);
     void pop();
@@ -16,7 +16,25 @@ class Stack
     int top();
 
   private:
-    std::list<int> data_;
-    size_t size_;
+    void clear();
+    void clone(const Stack& other);
+
+    struct Leaf
+    {
+      int data_;
+      Leaf * pnext_;
+
+      Leaf(const int& data, Leaf * pnext)
+      {
+        data_ = data;
+        pnext_ = pnext;
+      }
+      Leaf(const Leaf &) = default;
+      Leaf& operator= (const Leaf &) = default;
+      ~Leaf() = default;
+    };
+
+    Leaf* pTop_;
 };
 
+#endif STACK_H
