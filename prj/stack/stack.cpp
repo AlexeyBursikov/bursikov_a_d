@@ -1,36 +1,38 @@
 #include "stack.h"
 #include <stdexcept>
+#include <vector>
 
-Stack::Stack()
+
+StackL::StackL()
 {
     pTop_ = nullptr;
 }
 
-Stack::Stack(const Stack& other){
+StackL::StackL(const StackL& other){
     *this = other;
 }
 
-Stack& Stack::operator=(const Stack& other){
+StackL& StackL::operator=(const StackL& other){
     clone(other);
     return *this;
 }
 
-Stack::~Stack(){
+StackL::~StackL(){
     clear();
 }
 
-bool Stack::isEmpty()
+bool StackL::isEmpty()
 {
     return pTop_ == nullptr;
 }
 
-void Stack::push(int data)
+void StackL::push(int data)
 {
     Leaf* newLeaf = new Leaf(data, pTop_);
     pTop_ = newLeaf;
 }
 
-void Stack::pop()
+void StackL::pop()
 {
     if (!isEmpty()) {
         Leaf* tmp = pTop_->pnext_;
@@ -40,7 +42,7 @@ void Stack::pop()
 
 }
 
-int Stack::top()
+int StackL::top()
 {
     if (isEmpty())
     {
@@ -52,13 +54,13 @@ int Stack::top()
     }
 }
 
-void Stack::clear(){
+void StackL::clear(){
     while (pTop_ != nullptr) {
         pop();
     }
 }
 
-void Stack::clone(const Stack& other){
+void StackL::clone(const StackL& other){
     if (pTop_ == other.pTop_)
         return;
 
@@ -80,5 +82,89 @@ void Stack::clone(const Stack& other){
         pThis->pnext_ = newLeaf;
         pOther = pOther->pnext_;
         pThis = newLeaf;
+    }
+}
+
+/////////////////////////////////
+
+StackV::StackV()
+{
+    data_.reset(new int[INIT_SIZE]);
+    size_ = INIT_SIZE;
+    top_ = -1;
+}
+
+StackV::StackV(const StackV& other)
+{
+    *this = other;
+}
+
+StackV& StackV::operator=(const StackV& other)
+{
+    clone(other);
+    return *this;
+}
+
+
+bool StackV::isEmpty()
+{
+    return top_== -1;
+}
+
+void StackV::push(int data)
+{
+    if (top_ >= size_ - 1) {
+        expand();
+    }
+
+    data_[++top_] = data;
+}
+
+void StackV::pop()
+{
+    if (!isEmpty()) {
+        --top_;
+    }
+}
+
+int StackV::top()
+{
+    if (isEmpty())
+    {
+        throw std::out_of_range("retrieving item from empty stack");
+    }
+    else
+    {
+        return data_[top_];
+    }
+}
+
+void StackV::expand()
+{
+    size_ *= 2;
+    std::unique_ptr<int[]> newData(new int[size_]);
+    for (int i = 0; i <= top_; ++i) {
+        newData[i] = data_[i];
+    }
+
+    data_.swap(newData);
+}
+
+void StackV::clone(const StackV& other)
+{
+    if (data_ == other.data_)
+        return;
+
+    if (other.data_ == nullptr) {
+        data_ = nullptr;
+        return;
+    }
+
+    data_ = std::unique_ptr<int[]>(new int[other.size_]);
+    size_ = other.size_;
+    top_ = other.top_;
+
+    for (int i = 0; i <= other.top_; ++i) {
+        data_[i] = other.data_[i];
     }
 }

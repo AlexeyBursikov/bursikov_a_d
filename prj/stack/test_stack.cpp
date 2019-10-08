@@ -3,7 +3,7 @@
 
 TEST(StackTest, AddCheckPopElement)
 {
-  Stack stack;
+  StackL stack;
   ASSERT_TRUE(stack.isEmpty());
   stack.push(10);
   ASSERT_FALSE(stack.isEmpty());
@@ -14,7 +14,7 @@ TEST(StackTest, AddCheckPopElement)
 
 TEST(StackTest, AddElements)
 {
-  Stack stack;
+  StackV stack;
   for (int i = 0; i < 100; i++){
     stack.push(i);
   }
@@ -30,14 +30,14 @@ TEST(StackTest, AddElements)
 }
 
 TEST(StackTest, PopElement){
-    Stack stack;
+    StackV stack;
     ASSERT_TRUE(stack.isEmpty());
     stack.pop();
     ASSERT_TRUE(stack.isEmpty());
 }
 
 TEST(StackTest, TopEmpty){
-    Stack stack;
+    StackV stack;
     bool er = false;
     ASSERT_TRUE(stack.isEmpty());
     try{
@@ -51,12 +51,12 @@ TEST(StackTest, TopEmpty){
 }
 
 TEST(StackTest, CopyStack){
-    Stack stack;
+    StackV stack;
     for (int i = 0; i < 100; i++){
       stack.push(i);
     }
 
-    Stack stack2(stack);
+    StackV stack2(stack);
 
     for (int i = 99; i >= 0; i--){
       ASSERT_EQ(i, stack.top());

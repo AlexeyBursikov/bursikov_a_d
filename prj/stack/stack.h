@@ -1,14 +1,15 @@
 #pragma once
 #ifndef STACK_H
 #define STACK_H
+#include <memory>
 
-class Stack
+class StackL
 {
   public:
-    Stack();
-    Stack(const Stack &);
-    Stack& operator=(const Stack &);
-    ~Stack();
+    StackL();
+    StackL(const StackL &);
+    StackL& operator=(const StackL &);
+    ~StackL();
 
     void push(int x);
     void pop();
@@ -17,7 +18,7 @@ class Stack
 
   private:
     void clear();
-    void clone(const Stack& other);
+    void clone(const StackL& other);
 
     struct Leaf
     {
@@ -35,6 +36,30 @@ class Stack
     };
 
     Leaf* pTop_;
+};
+
+class StackV
+{
+public:
+  StackV();
+  StackV(const StackV &);
+  StackV& operator=(const StackV &);
+  ~StackV() = default;
+
+  void push(int x);
+  void pop();
+  bool isEmpty();
+  int top();
+
+private:
+  void expand();
+  void clone(const StackV& other);
+
+  static const int INIT_SIZE = 10;
+
+  std::unique_ptr<int[]> data_;
+  int size_;
+  int top_;
 };
 
 #endif STACK_H
