@@ -3,6 +3,7 @@
 #define STACK_H
 
 #include <memory>
+#include <stack>
 
 class IStack {
  public:
@@ -13,6 +14,25 @@ class IStack {
   virtual void pop() = 0;
   virtual bool isEmpty() const = 0;
   virtual int top() const = 0;
+};
+
+////
+
+class StackSTD : public IStack {
+ public:
+  StackSTD() = default;
+  StackSTD(const StackSTD&) = default;
+  StackSTD& operator=(const StackSTD&) = default;
+
+  ~StackSTD() override;
+
+  void push(int x) override;
+  void pop() override;
+  bool isEmpty() const override;
+  int top() const override;
+
+ private:
+  std::stack<int> stack_;
 };
 
 ////
@@ -29,10 +49,10 @@ class StackL : public IStack {
   void pop() override;
   bool isEmpty() const override;
   int top() const override;
+  void swap(StackL& other) noexcept;
 
  private:
   void clear();
-  void clone(const StackL& other);
 
   struct Leaf {
     int data_;
@@ -57,20 +77,20 @@ class StackV : public IStack {
   StackV(const StackV&);
   StackV& operator=(const StackV&);
 
-  ~StackV() override = default;
+  ~StackV() override;
 
   void push(int x) override;
   void pop() override;
   bool isEmpty() const override;
   int top() const override;
+  void swap(StackV& other) noexcept;
 
  private:
   void expand();
-  void clone(const StackV& other);
 
-  static const int INIT_SIZE = 10;
+  static const int INIT_SIZE = 8;
 
-  std::unique_ptr<int[]> data_;
+  int* data_;
   int size_;
   int top_;
 };

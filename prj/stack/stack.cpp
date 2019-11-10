@@ -1,13 +1,51 @@
-#include "stack.h"
+﻿#include "stack.h"
+
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
+StackSTD::~StackSTD() {}
+
+void StackSTD::push(int x) { stack_.push(x); }
+void StackSTD::pop() { stack_.pop(); }
+bool StackSTD::isEmpty() const { return stack_.top(); }
+int StackSTD::top() const { return stack_.top(); }
+
+////
+
 StackL::StackL() { pTop_ = nullptr; }
 
-StackL::StackL(const StackL& other) { *this = other; }
+StackL::StackL(const StackL& other) {
+  if (other.pTop_ == nullptr) {
+    pTop_ = nullptr;
+    return;
+  }
+
+  Leaf* newLeaf = new Leaf(*other.pTop_);
+  newLeaf->pnext_ = nullptr;
+  pTop_ = newLeaf;
+
+  Leaf* pOther = other.pTop_;
+  Leaf* pThis = pTop_;
+
+  while (pOther->pnext_ != nullptr) {
+    pOther = pOther->pnext_;
+    newLeaf = new Leaf(*pOther);
+    newLeaf->pnext_ = nullptr;
+
+    pThis->pnext_ = newLeaf;
+
+    pThis = pThis->pnext_;
+  }
+}
+
+void StackL::swap(StackL& other) noexcept {
+  std::swap(this->pTop_, other.pTop_);
+}
 
 StackL& StackL::operator=(const StackL& other) {
-  clone(other);
+  StackL tmp(other);
+  this->swap(tmp);
   return *this;
 }
 
@@ -38,53 +76,47 @@ int StackL::top() const {
 
 void StackL::clear() {
   while (pTop_ != nullptr) {
-    pop();
-  }
-}
-
-void StackL::clone(const StackL& other) {
-  if (pTop_ == other.pTop_) return;
-
-  if (other.pTop_ == nullptr) {
-    pTop_ = nullptr;
-    return;
-  }
-
-  Leaf* newLeaf = new Leaf(*other.pTop_);
-  newLeaf->pnext_ = nullptr;
-  pTop_ = newLeaf;
-
-  Leaf* pOther = other.pTop_->pnext_;
-  Leaf* pThis = pTop_;
-
-  while (pOther != nullptr) {
-    Leaf* newLeaf = new Leaf(*pOther);
-    newLeaf->pnext_ = nullptr;
-    pThis->pnext_ = newLeaf;
-    pOther = pOther->pnext_;
-    pThis = newLeaf;
+    Leaf* tmp = pTop_->pnext_;
+    delete pTop_;
+    pTop_ = tmp;
   }
 }
 
 ////
 
 StackV::StackV() {
-  data_.reset(new int[INIT_SIZE]);
+  data_ = new int[INIT_SIZE];
   size_ = INIT_SIZE;
   top_ = -1;
 }
 
-StackV::StackV(const StackV& other) { *this = other; }
+StackV::StackV(const StackV& other) {
+  data_ = new int[other.size_];
+  size_ = other.size_;
+  top_ = other.top_;
+  for (int i = 0; i <= other.top_; ++i) {
+    data_[i] = other.data_[i];
+  }
+}
+
+void StackV::swap(StackV& other) noexcept {
+  std::swap(this->size_, other.size_);
+  std::swap(this->top_, other.top_);
+  std::swap(this->data_, other.data_);
+}
 
 StackV& StackV::operator=(const StackV& other) {
-  clone(other);
+  StackV tmp(other);
+  this->swap(tmp);
   return *this;
 }
+
+StackV::~StackV() { delete[] data_; }
 
 bool StackV::isEmpty() const { return top_ == -1; }
 
 void StackV::push(int data) {
-  if (top_ >= size_ - 1) {
+  if (top_ >= (size_ - 1)) {
     expand();
   }
 
@@ -107,27 +139,11 @@ int StackV::top() const {
 
 void StackV::expand() {
   size_ *= 2;
-  std::unique_ptr<int[]> newData(new int[size_]);
+  int* newData = new int[size_];
   for (int i = 0; i <= top_; ++i) {
     newData[i] = data_[i];
   }
 
-  data_.swap(newData);
-}
-
-void StackV::clone(const StackV& other) {
-  if (data_ == other.data_) return;
-
-  if (other.data_ == nullptr) {
-    data_ = nullptr;
-    return;
-  }
-
-  data_ = std::unique_ptr<int[]>(new int[other.size_]);
-  size_ = other.size_;
-  top_ = other.top_;
-
-  for (int i = 0; i <= other.top_; ++i) {
-    data_[i] = other.data_[i];
-  }
+  delete[] data_;
+  data_ = newData;
 }

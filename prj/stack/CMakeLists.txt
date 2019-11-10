@@ -8,8 +8,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-set(STACK_HEADERS stack.h)
-set(STACK_SOURSES stack.cpp)
+set(STACK_HEADERS
+    stack.h
+    timer.h)
+set(STACK_SOURSES
+    stack.cpp
+    timer.cpp)
 
 add_library(stack
   ${STACK_HEADERS}

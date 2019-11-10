@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "stack.h"
 
 TEST(StackLTest, AddCheckPopElement) {
@@ -53,11 +54,11 @@ TEST(StackLTest, CopyStack) {
     stack.push(i);
   }
 
-  stack = stack;
+  // stack = stack;
 
   StackL stack2(stack);
 
-  stack2 = stack2;
+  // stack2 = stack2;
 
   for (int i = 99; i >= 0; i--) {
     ASSERT_EQ(i, stack.top());
