@@ -1,13 +1,21 @@
 ﻿#include "stack.h"
 
+#include "timer.h"
+
 #include <iostream>
 #include <stdexcept>
 #include <vector>
 
 StackSTD::~StackSTD() {}
 
-void StackSTD::push(int x) { stack_.push(x); }
-void StackSTD::pop() { stack_.pop(); }
+void StackSTD::push(int x) {
+  // Timer("StackSTD::push()");
+  stack_.push(x);
+}
+void StackSTD::pop() {
+  // Timer("StackSTD::pop()");
+  stack_.pop();
+}
 bool StackSTD::isEmpty() const { return stack_.top(); }
 int StackSTD::top() const { return stack_.top(); }
 
@@ -54,11 +62,13 @@ StackL::~StackL() { clear(); }
 bool StackL::isEmpty() const { return pTop_ == nullptr; }
 
 void StackL::push(int data) {
+  // Timer("StackL::push()");
   Leaf* newLeaf = new Leaf(data, pTop_);
   pTop_ = newLeaf;
 }
 
 void StackL::pop() {
+  // Timer("StackL::pop()");
   if (!isEmpty()) {
     Leaf* tmp = pTop_->pnext_;
     delete pTop_;
@@ -116,6 +126,7 @@ StackV::~StackV() { delete[] data_; }
 bool StackV::isEmpty() const { return top_ == -1; }
 
 void StackV::push(int data) {
+  // Timer("StackV::push()");
   if (top_ >= (size_ - 1)) {
     expand();
   }
@@ -124,6 +135,7 @@ void StackV::push(int data) {
 }
 
 void StackV::pop() {
+  // Timer("StackV::pop()");
   if (!isEmpty()) {
     --top_;
   }

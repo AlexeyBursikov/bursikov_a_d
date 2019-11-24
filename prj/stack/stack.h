@@ -95,4 +95,4 @@ class StackV : public IStack {
   int top_;
 };
 
-#endif STACK_H
+#endif
