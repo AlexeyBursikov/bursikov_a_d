@@ -8,6 +8,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
+#find_package( Boost 1.40 COMPONENTS lockfree REQUIRED)
+#include_directories( ${Boost_INCLUDE_DIR} )
+
 set(STACK_HEADERS
     stack.h
     timer.h)

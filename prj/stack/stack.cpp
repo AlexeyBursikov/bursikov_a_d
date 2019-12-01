@@ -8,12 +8,15 @@
 
 StackSTD::~StackSTD() {}
 
+DEF_TIMER(StackSTDPush);
 void StackSTD::push(int x) {
-  // Timer("StackSTD::push()");
+  DECL_TIMER(StackSTDPush);
   stack_.push(x);
 }
+
+DEF_TIMER(StackSTDPop)
 void StackSTD::pop() {
-  // Timer("StackSTD::pop()");
+  DECL_TIMER(StackSTDPop);
   stack_.pop();
 }
 bool StackSTD::isEmpty() const { return stack_.top(); }
@@ -61,14 +64,16 @@ StackL::~StackL() { clear(); }
 
 bool StackL::isEmpty() const { return pTop_ == nullptr; }
 
+DEF_TIMER(StackLPush)
 void StackL::push(int data) {
-  // Timer("StackL::push()");
+  DECL_TIMER(StackLPush);
   Leaf* newLeaf = new Leaf(data, pTop_);
   pTop_ = newLeaf;
 }
 
+DEF_TIMER(StackLPop)
 void StackL::pop() {
-  // Timer("StackL::pop()");
+  DECL_TIMER(StackLPop);
   if (!isEmpty()) {
     Leaf* tmp = pTop_->pnext_;
     delete pTop_;
@@ -125,8 +130,9 @@ StackV::~StackV() { delete[] data_; }
 
 bool StackV::isEmpty() const { return top_ == -1; }
 
+DEF_TIMER(StackVPush)
 void StackV::push(int data) {
-  // Timer("StackV::push()");
+  DECL_TIMER(StackVPush);
   if (top_ >= (size_ - 1)) {
     expand();
   }
@@ -134,8 +140,9 @@ void StackV::push(int data) {
   data_[++top_] = data;
 }
 
+DEF_TIMER(StackVPop)
 void StackV::pop() {
-  // Timer("StackV::pop()");
+  DECL_TIMER(StackVPop);
   if (!isEmpty()) {
     --top_;
   }
