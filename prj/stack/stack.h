@@ -5,6 +5,8 @@
 #include <memory>
 #include <stack>
 
+namespace st {
+
 class IStack {
  public:
   IStack() {}
@@ -94,5 +96,6 @@ class StackV : public IStack {
   int size_;
   int top_;
 };
+}  // namespace st
 
 #endif

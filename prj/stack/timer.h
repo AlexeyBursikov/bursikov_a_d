@@ -9,6 +9,7 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+namespace tmr {
 
 // struct Stat {
 //  std::string name;
@@ -75,6 +76,7 @@
 //#endif
 
 struct Stat {
+  long long id_;
   std::atomic_llong count_;
   std::atomic_llong time_;
 
@@ -95,8 +97,8 @@ class TimeLogger {
   void addStat(const Stat* stat) { stat_list_.push_back(stat); }
   void printStat(std::ostream& out) {
     for (auto& i : stat_list_) {
-      out << typeid(*i).name() << "\t | \t" << i->count_ << "\t | \t"
-          << i->time_ << std::endl;
+      out << i->id_ << "\t | \t" << i->count_ << "\t | \t" << i->time_
+          << std::endl;
     }
   }
 
@@ -106,11 +108,22 @@ class TimeLogger {
   std::vector<const Stat*> stat_list_;
 };
 
-template <class T>
+constexpr long long compute_hash(const char* str) {
+  constexpr int p = 31;
+  constexpr long long m = 1e16;
+  long long hash_value = 0;
+  while (*str) {
+    hash_value = (hash_value * p + (*str++ - 'a' + 1)) % m;
+  }
+  return hash_value;
+}
+
+template <long long t>
 class Singleton {
  public:
-  static T& instance() {
-    static T obj;
+  static Stat& instance() {
+    static Stat obj;
+    obj.id_ = t;
     return obj;
   }
 
@@ -136,21 +149,19 @@ class Timer {
   std::chrono::time_point<std::chrono::high_resolution_clock> end_;
 };
 
+}  // namespace tmr
+
 #ifdef WITH_TIMER
-#define PRINT_STAT(stream) TimeLogger::instance().printStat(stream);
+#define PRINT_STAT(stream) ::tmr::TimeLogger::instance().printStat(stream);
 #else
 #define PRINT_STAT(stream)
 #endif
 
 #ifdef WITH_TIMER
-#define DEF_TIMER(name) \
-  struct name : public Stat {};
-#else
-#define DEF_TIMER(name)
-#endif
-
-#ifdef WITH_TIMER
-#define DECL_TIMER(name) Timer<Singleton<name> > timer;
+#define DECL_TIMER(name)                               \
+  constexpr char str[] = name;                         \
+  constexpr long long hash = ::tmr::compute_hash(str); \
+  ::tmr::Timer<::tmr::Singleton<hash>> timer;
 #else
 #define DECL_TIMER(name)
 #endif

@@ -8,7 +8,7 @@
 #include <thread>
 #include <vector>
 
-void getStackStatPushPop(IStack& stack, std::ostream& str) {
+void getStackStatPushPop(st::IStack& stack, std::ostream& str) {
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
   int ops = 1000000;
   int step = 100000;
@@ -103,52 +103,50 @@ void getStackStatCopy(std::ostream& str) {
   str << std::endl;
 }
 
-DEF_TIMER(genIndTimer)
-
 void genInd(int n, std::vector<int> v) {
-  DECL_TIMER(genIndTimer)
+  DECL_TIMER("genIndTimer")
   for (int i = 0; i < n; ++i) {
     v.push_back(i);
   }
 }
 
 int main() {
-  //  std::fstream out_stream(
-  //      "/media/alex/Новый том/Storage/bursikov_a_d/prj/stack/stat");
+  std::fstream out_stream(
+      "/media/alex/Новый том/Storage/bursikov_a_d/prj/stack/stat");
 
-  //  if (!out_stream.is_open()) {
-  //    std::cout << "could not open file" << std::endl;
-  //    return -1;
-  //  }
+  if (!out_stream.is_open()) {
+    std::cout << "could not open file" << std::endl;
+    return -1;
+  }
 
-  //  StackV stack_v;
-  //  out_stream << "StackV" << std::endl;
-  //  getStackStatPushPop(stack_v, out_stream);
-  //  out_stream << std::endl << std::endl;
+  st::StackV stack_v;
+  out_stream << "StackV" << std::endl;
+  getStackStatPushPop(stack_v, out_stream);
+  out_stream << std::endl << std::endl;
 
-  //  StackL stack_l;
-  //  out_stream << "StackL" << std::endl;
-  //  getStackStatPushPop(stack_l, out_stream);
-  //  out_stream << std::endl << std::endl;
+  st::StackL stack_l;
+  out_stream << "StackL" << std::endl;
+  getStackStatPushPop(stack_l, out_stream);
+  out_stream << std::endl << std::endl;
 
-  //  StackSTD stack_std;
-  //  out_stream << "StackSTD" << std::endl;
-  //  getStackStatPushPop(stack_std, out_stream);
-  //  out_stream << std::endl << std::endl;
+  st::StackSTD stack_std;
+  out_stream << "StackSTD" << std::endl;
+  getStackStatPushPop(stack_std, out_stream);
+  out_stream << std::endl << std::endl;
 
-  //  out_stream << "StackV" << std::endl;
-  //  getStackStatCopy<StackV>(out_stream);
-  //  out_stream << std::endl << std::endl;
+  out_stream << "StackV" << std::endl;
+  getStackStatCopy<st::StackV>(out_stream);
+  out_stream << std::endl << std::endl;
 
-  //  out_stream << "StackL" << std::endl;
-  //  getStackStatCopy<StackL>(out_stream);
-  //  out_stream << std::endl << std::endl;
+  out_stream << "StackL" << std::endl;
+  getStackStatCopy<st::StackL>(out_stream);
+  out_stream << std::endl << std::endl;
 
-  //  out_stream << "StackSTD" << std::endl;
-  //  getStackStatCopy<StackSTD>(out_stream);
-  //  out_stream << std::endl << std::endl;
+  out_stream << "StackSTD" << std::endl;
+  getStackStatCopy<st::StackSTD>(out_stream);
+  out_stream << std::endl << std::endl;
 
-  //  out_stream.close();
+  out_stream.close();
 
   std::vector<int> v;
   std::chrono::time_point<std::chrono::high_resolution_clock> start;

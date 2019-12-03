@@ -3,7 +3,7 @@
 #include "stack.h"
 
 TEST(StackLTest, AddCheckPopElement) {
-  StackL stack;
+  st::StackL stack;
   ASSERT_TRUE(stack.isEmpty());
   stack.push(10);
   ASSERT_FALSE(stack.isEmpty());
@@ -13,7 +13,7 @@ TEST(StackLTest, AddCheckPopElement) {
 }
 
 TEST(StackLTest, AddElements) {
-  StackL stack;
+  st::StackL stack;
   for (int i = 0; i < 100; i++) {
     stack.push(i);
   }
@@ -29,14 +29,14 @@ TEST(StackLTest, AddElements) {
 }
 
 TEST(StackLTest, PopElement) {
-  StackL stack;
+  st::StackL stack;
   ASSERT_TRUE(stack.isEmpty());
   stack.pop();
   ASSERT_TRUE(stack.isEmpty());
 }
 
 TEST(StackLTest, TopEmpty) {
-  StackL stack;
+  st::StackL stack;
   bool er = false;
   ASSERT_TRUE(stack.isEmpty());
   try {
@@ -49,14 +49,14 @@ TEST(StackLTest, TopEmpty) {
 }
 
 TEST(StackLTest, CopyStack) {
-  StackL stack;
+  st::StackL stack;
   for (int i = 0; i < 100; i++) {
     stack.push(i);
   }
 
   // stack = stack;
 
-  StackL stack2(stack);
+  st::StackL stack2(stack);
 
   // stack2 = stack2;
 
@@ -76,7 +76,7 @@ TEST(StackLTest, CopyStack) {
 ////
 
 TEST(StackVTest, AddCheckPopElement) {
-  StackV stack;
+  st::StackV stack;
   ASSERT_TRUE(stack.isEmpty());
   stack.push(10);
   ASSERT_FALSE(stack.isEmpty());
@@ -86,7 +86,7 @@ TEST(StackVTest, AddCheckPopElement) {
 }
 
 TEST(StackVTest, AddElements) {
-  StackV stack;
+  st::StackV stack;
   for (int i = 0; i < 100; i++) {
     stack.push(i);
   }
@@ -102,14 +102,14 @@ TEST(StackVTest, AddElements) {
 }
 
 TEST(StackVTest, PopElement) {
-  StackV stack;
+  st::StackV stack;
   ASSERT_TRUE(stack.isEmpty());
   stack.pop();
   ASSERT_TRUE(stack.isEmpty());
 }
 
 TEST(StackVTest, TopEmpty) {
-  StackV stack;
+  st::StackV stack;
   bool er = false;
   ASSERT_TRUE(stack.isEmpty());
   try {
@@ -122,14 +122,14 @@ TEST(StackVTest, TopEmpty) {
 }
 
 TEST(StackVTest, CopyStack) {
-  StackV stack;
+  st::StackV stack;
   for (int i = 0; i < 100; i++) {
     stack.push(i);
   }
 
   stack = stack;
 
-  StackV stack2(stack);
+  st::StackV stack2(stack);
 
   stack2 = stack2;
 
