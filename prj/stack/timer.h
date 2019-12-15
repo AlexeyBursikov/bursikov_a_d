@@ -3,108 +3,158 @@
 #define TIMER_H
 
 #define WITH_TIMER
-
 #include <atomic>
 #include <boost/lockfree/queue.hpp>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <vector>
+
 namespace tmr {
 
-struct Stat {
-  long long id_;
-  std::atomic_llong count_;
-  std::atomic_llong time_;
-
-  Stat();
-  ~Stat() = default;
+class Printable {
+ public:
+  virtual std::ostream& print(std::ostream& str) const = 0;
+  virtual ~Printable() {}
 };
 
-class TimeLogger {
+class Logger {
  public:
-  static TimeLogger& instance() {
-    static TimeLogger logger;
+  static Logger& instance() {
+    static Logger logger;
     return logger;
   }
 
-  TimeLogger(const TimeLogger&) = delete;
-  TimeLogger& operator=(const TimeLogger&) = delete;
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
 
-  void addStat(const Stat* stat) { stat_list_.push_back(stat); }
+  void addData(const Printable* data) {
+    mtx_.lock();
+    data_list_.push_back(data);
+    mtx_.unlock();
+  }
 
   void printStat(std::ostream& out) {
-    for (auto& i : stat_list_) {
-      out << i->id_ << "\t | \t" << i->count_ << "\t | \t" << i->time_
-          << std::endl;
+#ifdef WITH_TIMER
+    out << std::setw(16) << "id"
+        << "\t|\t" << std::setw(16) << "count"
+        << "\t|\t" << std::setw(16) << "time"
+        << "\t|\t" << std::setw(16) << "time / count" << std::endl;
+#else
+#endif
+    for (auto& i : data_list_) {
+      i->print(out);
     }
   }
 
  private:
-  TimeLogger() = default;
+  Logger() = default;
 
-  std::vector<const Stat*> stat_list_;
+  std::mutex mtx_;
+  std::vector<const Printable*> data_list_;
 };
 
-inline Stat::Stat() : count_(0), time_(0) {
-  TimeLogger::instance().addStat(this);
-};
-
-constexpr long long compute_hash(const char* str) {
-  constexpr int p = 31;
-  constexpr long long m = 1e16;
-  long long hash_value = 0;
+constexpr unsigned long compute_hash(const char* str) {
+  unsigned long hash = 5381;
   while (*str) {
-    hash_value = (hash_value * p + (*str++ - 'a' + 1)) % m;
+    hash = ((hash << 5) + hash) + *str++;
   }
-  return hash_value;
+  return hash;
 }
 
-template <long long t>
-class Singleton {
+template <unsigned long id>
+class Name : public Printable {
  public:
-  static Stat& instance() {
-    static Stat obj;
-    obj.id_ = t;
-    return obj;
+  std::string name_;
+  std::string file_;
+
+  std::ostream& print(std::ostream& str) const override {
+    str << std::setw(16) << id << "\t|\t" << std::setw(16) << name_ << "\t|\t"
+        << std::setw(32) << file_ << std::endl;
+    return str;
   }
 
-  Singleton(const Singleton&) = delete;
-  Singleton& operator=(const Singleton&) = delete;
-  Singleton() { instance(); }
-};
+  Name(const Name&) = delete;
+  Name& operator=(const Name&) = delete;
 
-template <class T>
-class Timer {
- public:
-  Timer() { start_ = std::chrono::high_resolution_clock::now(); }
-  ~Timer() {
-    end_ = std::chrono::high_resolution_clock::now();
-    T::instance().count_++;
-    T::instance().time_ +=
-        std::chrono::duration_cast<std::chrono::nanoseconds>(end_ - start_)
-            .count();
+  Name(const std::string& name, const std::string& file) {
+    static std::once_flag flag;
+    std::call_once(flag, [this, &name, &file]() {
+      name_ = name;
+      file_ = file;
+      tmr::Logger::instance().addData(this);
+    });
   }
 
  private:
+};
+
+struct Stat {
+  std::atomic_llong count_;
+  std::atomic_llong time_;
+};
+
+template <unsigned long id>
+class StatSingleton : public Printable, Stat {
+ public:
+  static Stat& instance() {
+    static StatSingleton<id> obj;
+    return obj;
+  }
+
+  std::ostream& print(std::ostream& str) const override {
+    str << std::setw(16) << id << "\t|\t" << std::setw(16) << count_ << "\t|\t"
+        << std::setw(16) << time_ << "\t|\t" << std::setw(16)
+        << time_ * 1.0 / count_ << std::endl;
+    return str;
+  }
+
+  ~StatSingleton() = default;
+  StatSingleton(const StatSingleton&) = delete;
+  StatSingleton& operator=(const StatSingleton&) = delete;
+
+ private:
+  StatSingleton() { tmr::Logger::instance().addData(this); }
+};
+
+class Timer {
+ public:
+  Timer(Stat* stat) {
+    stat_ = stat;
+    start_ = std::chrono::high_resolution_clock::now();
+  }
+
+  ~Timer() {
+    stat_->time_ += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        std::chrono::high_resolution_clock::now() - start_)
+                        .count();
+    stat_->count_++;
+  }
+
+ private:
+  Stat* stat_;
   std::chrono::time_point<std::chrono::high_resolution_clock> start_;
-  std::chrono::time_point<std::chrono::high_resolution_clock> end_;
 };
 
 }  // namespace tmr
 
 #ifdef WITH_TIMER
-#define PRINT_STAT(stream) ::tmr::TimeLogger::instance().printStat(stream);
+#define PRINT_STAT(stream) ::tmr::Logger::instance().printStat(stream);
 #else
-#define PRINT_STAT(stream)
+#define PRINT_STAT(stream)  //::tmr::Logger::instance().printStat(stream);
 #endif
 
 #ifdef WITH_TIMER
-#define DECL_TIMER(name)                               \
-  constexpr char str[] = name;                         \
-  constexpr long long hash = ::tmr::compute_hash(str); \
-  ::tmr::Timer<::tmr::Singleton<hash>> timer;
+#define DECL_TIMER(name)                                   \
+  constexpr char str[] = name;                             \
+  constexpr unsigned long hash = ::tmr::compute_hash(str); \
+  ::tmr::Timer wgjprtsqaw(&::tmr::StatSingleton<hash>::instance());
 #else
-#define DECL_TIMER(name)
+#define DECL_TIMER(name) \
+//  constexpr char str[] = name;                             \
+//  constexpr unsigned long hash = ::tmr::compute_hash(str); \
+//  ::tmr::Name<hash> timer(name, __FILE__);
 #endif
 
 #endif  // TIMER_H

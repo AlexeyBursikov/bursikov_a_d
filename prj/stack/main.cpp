@@ -5,6 +5,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <thread>
 #include <vector>
 
@@ -103,47 +104,69 @@ void getStackStatCopy(std::ostream& str) {
   str << std::endl;
 }
 
-void genInd(int n, std::vector<int> v) {
-  DECL_TIMER("genIndTimer")
+void genInd(int n, std::vector<int>& v) {
+  DECL_TIMER("genIndTimer");
   for (int i = 0; i < n; ++i) {
     v.push_back(i);
   }
 }
 
 int main() {
-  std::fstream out_stream(
-      "/media/alex/Новый том/Storage/bursikov_a_d/prj/stack/stat");
+  std::stringstream ssV;
+  std::stringstream ssL;
+  std::stringstream ssSTD;
+  std::stringstream ssVC;
+  std::stringstream ssLC;
+  std::stringstream ssSTDC;
+  std::vector<std::thread> threads;
 
+  st::StackV stack_v;
+  std::thread thV(getStackStatPushPop, std::ref(stack_v), std::ref(ssV));
+  threads.push_back(std::move(thV));
+
+  //  st::StackV stack_l;
+  //  std::thread thL(getStackStatPushPop, std::ref(stack_l), std::ref(ssL));
+  //  threads.push_back(std::move(thL));
+
+  //  st::StackV stack_std;
+  //  std::thread thSTD(getStackStatPushPop, std::ref(stack_std),
+  //  std::ref(ssSTD)); threads.push_back(std::move(thSTD));
+
+  //  std::thread thVC(getStackStatCopy<st::StackV>, std::ref(ssVC));
+  //  threads.push_back(std::move(thVC));
+
+  //  std::thread thLC(getStackStatCopy<st::StackL>, std::ref(ssLC));
+  //  threads.push_back(std::move(thLC));
+
+  //  std::thread thSTDC(getStackStatCopy<st::StackSTD>, std::ref(ssSTDC));
+  //  threads.push_back(std::move(thSTDC));
+
+  for (auto& i : threads) {
+    i.join();
+  }
+
+  std::fstream out_stream("../stat");
   if (!out_stream.is_open()) {
     std::cout << "could not open file" << std::endl;
     return -1;
   }
 
-  st::StackV stack_v;
   out_stream << "StackV" << std::endl;
-  getStackStatPushPop(stack_v, out_stream);
-  out_stream << std::endl << std::endl;
-
-  st::StackL stack_l;
-  out_stream << "StackL" << std::endl;
-  getStackStatPushPop(stack_l, out_stream);
-  out_stream << std::endl << std::endl;
-
-  st::StackSTD stack_std;
-  out_stream << "StackSTD" << std::endl;
-  getStackStatPushPop(stack_std, out_stream);
-  out_stream << std::endl << std::endl;
-
-  out_stream << "StackV" << std::endl;
-  getStackStatCopy<st::StackV>(out_stream);
+  out_stream << ssV.str();
+  out_stream << std::endl;
+  out_stream << ssVC.str();
   out_stream << std::endl << std::endl;
 
   out_stream << "StackL" << std::endl;
-  getStackStatCopy<st::StackL>(out_stream);
+  out_stream << ssL.str();
+  out_stream << std::endl;
+  out_stream << ssLC.str();
   out_stream << std::endl << std::endl;
 
   out_stream << "StackSTD" << std::endl;
-  getStackStatCopy<st::StackSTD>(out_stream);
+  out_stream << ssSTD.str();
+  out_stream << std::endl;
+  out_stream << ssSTDC.str();
   out_stream << std::endl << std::endl;
 
   out_stream.close();

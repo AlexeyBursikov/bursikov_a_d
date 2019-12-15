@@ -12,20 +12,26 @@ include_directories(${GTEST_INCLUDE_DIRS})
 #include_directories( ${Boost_INCLUDE_DIR} )
 
 set(STACK_HEADERS
-    stack.h
-    timer.h)
+    stack.h)
 set(STACK_SOURSES
-    stack.cpp
-    timer.cpp)
+    stack.cpp)
+
+set(TIMER_HEADERS timer.h)
+set(TIMER_SOURSES timer.cpp)
 
 add_library(stack
   ${STACK_HEADERS}
   ${STACK_SOURSES})
 
+add_library(timer
+  ${TIMER_HEADERS}
+  ${TIMER_SOURSES})
+
+
 add_executable(main main.cpp)
-target_link_libraries(main stack)
+target_link_libraries(main stack timer pthread)
 
 add_executable(test_stack test_stack.cpp)
-target_link_libraries(test_stack stack ${GTEST_LIBRARIES} pthread)
+target_link_libraries(test_stack timer stack ${GTEST_LIBRARIES} pthread)
 
 add_test(NAME test_stack COMMAND test_stack "./test_stack.cpp")
