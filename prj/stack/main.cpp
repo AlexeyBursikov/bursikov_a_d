@@ -1,13 +1,16 @@
 #include "stack.h"
 
-#include "timer.h"
-
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <thread>
 #include <vector>
+
+//#define WITH_TIMER
+//#define WITH_LOG_INFO
+
+#include "timer.h"
 
 void getStackStatPushPop(st::IStack& stack, std::ostream& str) {
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
@@ -124,22 +127,22 @@ int main() {
   std::thread thV(getStackStatPushPop, std::ref(stack_v), std::ref(ssV));
   threads.push_back(std::move(thV));
 
-  //  st::StackV stack_l;
-  //  std::thread thL(getStackStatPushPop, std::ref(stack_l), std::ref(ssL));
-  //  threads.push_back(std::move(thL));
+  st::StackL stack_l;
+  std::thread thL(getStackStatPushPop, std::ref(stack_l), std::ref(ssL));
+  threads.push_back(std::move(thL));
 
-  //  st::StackV stack_std;
-  //  std::thread thSTD(getStackStatPushPop, std::ref(stack_std),
-  //  std::ref(ssSTD)); threads.push_back(std::move(thSTD));
+  st::StackSTD stack_std;
+  std::thread thSTD(getStackStatPushPop, std::ref(stack_std), std::ref(ssSTD));
+  threads.push_back(std::move(thSTD));
 
-  //  std::thread thVC(getStackStatCopy<st::StackV>, std::ref(ssVC));
-  //  threads.push_back(std::move(thVC));
+  std::thread thVC(getStackStatCopy<st::StackV>, std::ref(ssVC));
+  threads.push_back(std::move(thVC));
 
-  //  std::thread thLC(getStackStatCopy<st::StackL>, std::ref(ssLC));
-  //  threads.push_back(std::move(thLC));
+  std::thread thLC(getStackStatCopy<st::StackL>, std::ref(ssLC));
+  threads.push_back(std::move(thLC));
 
-  //  std::thread thSTDC(getStackStatCopy<st::StackSTD>, std::ref(ssSTDC));
-  //  threads.push_back(std::move(thSTDC));
+  std::thread thSTDC(getStackStatCopy<st::StackSTD>, std::ref(ssSTDC));
+  threads.push_back(std::move(thSTDC));
 
   for (auto& i : threads) {
     i.join();
@@ -171,21 +174,7 @@ int main() {
 
   out_stream.close();
 
-  std::vector<int> v;
-  std::chrono::time_point<std::chrono::high_resolution_clock> start;
-  std::chrono::time_point<std::chrono::high_resolution_clock> end;
-  start = std::chrono::high_resolution_clock::now();
-
-  genInd(10000000, v);
-
-  end = std::chrono::high_resolution_clock::now();
-
-  PRINT_STAT(std::cout)
-
-  std::cout << "gen time: "
-            << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
-                   .count()
-            << std::endl;
+  PRINT_STAT(std::cout);
 
   return 0;
 }

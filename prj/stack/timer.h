@@ -2,7 +2,9 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#define WITH_TIMER
+//#define WITH_TIMER
+//#define WITH_LOG_INFO
+
 #include <atomic>
 #include <boost/lockfree/queue.hpp>
 #include <chrono>
@@ -26,9 +28,6 @@ class Logger {
     return logger;
   }
 
-  Logger(const Logger&) = delete;
-  Logger& operator=(const Logger&) = delete;
-
   void addData(const Printable* data) {
     mtx_.lock();
     data_list_.push_back(data);
@@ -36,17 +35,24 @@ class Logger {
   }
 
   void printStat(std::ostream& out) {
-#ifdef WITH_TIMER
+#if defined(WITH_TIMER)
     out << std::setw(16) << "id"
         << "\t|\t" << std::setw(16) << "count"
         << "\t|\t" << std::setw(16) << "time"
         << "\t|\t" << std::setw(16) << "time / count" << std::endl;
-#else
+#elif defined(WITH_LOG_INFO)
+    out << std::setw(16) << "id"
+        << "\t|\t" << std::setw(16) << "name"
+        << "\t|\t" << std::setw(64) << "file"
+        << "\t|\t" << std::setw(16) << "func" << std::endl;
 #endif
     for (auto& i : data_list_) {
       i->print(out);
     }
   }
+
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
 
  private:
   Logger() = default;
@@ -66,28 +72,32 @@ constexpr unsigned long compute_hash(const char* str) {
 template <unsigned long id>
 class Name : public Printable {
  public:
-  std::string name_;
-  std::string file_;
+  const char* name_;
+  const char* file_;
+  const char* func_;
+
+  static Name& instance(const char* name, const char* file, const char* func) {
+    static Name<id> obj(name, file, func);
+    return obj;
+  }
 
   std::ostream& print(std::ostream& str) const override {
     str << std::setw(16) << id << "\t|\t" << std::setw(16) << name_ << "\t|\t"
-        << std::setw(32) << file_ << std::endl;
+        << std::setw(64) << file_ << "\t|\t" << std::setw(16) << func_
+        << std::endl;
     return str;
   }
 
   Name(const Name&) = delete;
   Name& operator=(const Name&) = delete;
 
-  Name(const std::string& name, const std::string& file) {
-    static std::once_flag flag;
-    std::call_once(flag, [this, &name, &file]() {
-      name_ = name;
-      file_ = file;
-      tmr::Logger::instance().addData(this);
-    });
-  }
-
  private:
+  Name(const char* name, const char* file, const char* func) {
+    name_ = name;
+    file_ = file;
+    func_ = func;
+    tmr::Logger::instance().addData(this);
+  }
 };
 
 struct Stat {
@@ -139,22 +149,27 @@ class Timer {
 
 }  // namespace tmr
 
-#ifdef WITH_TIMER
+#if defined(WITH_TIMER)
+#define PRINT_STAT(stream) ::tmr::Logger::instance().printStat(stream);
+#elif defined(WITH_LOG_INFO)
 #define PRINT_STAT(stream) ::tmr::Logger::instance().printStat(stream);
 #else
-#define PRINT_STAT(stream)  //::tmr::Logger::instance().printStat(stream);
+#define PRINT_STAT(stream)
 #endif
 
-#ifdef WITH_TIMER
-#define DECL_TIMER(name)                                   \
-  constexpr char str[] = name;                             \
-  constexpr unsigned long hash = ::tmr::compute_hash(str); \
+#if defined(WITH_TIMER)
+#define DECL_TIMER(name)                                         \
+  constexpr char str[] = name;                                   \
+  constexpr unsigned long hash =                                 \
+      ::tmr::compute_hash(__FILE__) ^ ::tmr::compute_hash(name); \
   ::tmr::Timer wgjprtsqaw(&::tmr::StatSingleton<hash>::instance());
+#elif defined(WITH_LOG_INFO)
+#define DECL_TIMER(name)                                         \
+  constexpr unsigned long hash =                                 \
+      ::tmr::compute_hash(__FILE__) ^ ::tmr::compute_hash(name); \
+  ::tmr::Name<hash>::instance(name, __FILE__, __func__);
 #else
-#define DECL_TIMER(name) \
-//  constexpr char str[] = name;                             \
-//  constexpr unsigned long hash = ::tmr::compute_hash(str); \
-//  ::tmr::Name<hash> timer(name, __FILE__);
+#define DECL_TIMER(name)
 #endif
 
 #endif  // TIMER_H
