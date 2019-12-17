@@ -35,7 +35,7 @@ add_executable(test_timer test_timer.cpp)
 target_link_libraries(test_timer timer pthread)
 
 add_executable(test_chrono test_chrono.cpp)
-target_link_libraries(test_chrono timer)
+target_link_libraries(test_chrono timer pthread)
 
 add_executable(test_stack test_stack.cpp)
 target_link_libraries(test_stack timer stack ${GTEST_LIBRARIES} pthread)

@@ -1,45 +1,70 @@
 ﻿#include <chrono>
 #include <iostream>
+#include <thread>
 
 #define WITH_TIMER
 //#define WITH_LOG_INFO
 
 #include "timer.h"
 
-int main() {
+void runFun(int n, std::vector<long>& times) {
+  std::chrono::time_point<std::chrono::high_resolution_clock> start;
+  std::chrono::time_point<std::chrono::high_resolution_clock> end;
   std::chrono::time_point<std::chrono::high_resolution_clock> start1;
   std::chrono::time_point<std::chrono::high_resolution_clock> end1;
-  std::chrono::time_point<std::chrono::high_resolution_clock> start2;
-  std::chrono::time_point<std::chrono::high_resolution_clock> end2;
-  start2 = std::chrono::high_resolution_clock::now();
-  start1 = std::chrono::high_resolution_clock::now();
+  for (int i = 0; i < n; i++) {
+    start = std::chrono::high_resolution_clock::now();
+    start1 = std::chrono::high_resolution_clock::now();
 
-  // smth
+    // smth
 
-  end1 = std::chrono::high_resolution_clock::now();
-  end2 = std::chrono::high_resolution_clock::now();
+    end1 = std::chrono::high_resolution_clock::now();
+    end = std::chrono::high_resolution_clock::now();
 
-  long dur1 =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(end1 - start1)
-          .count();
-  long dur2 =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(end2 - start2)
-          .count();
-  std::cout << "gen time1: " << dur1 << std::endl;
+    long dur1 =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(end1 - start1)
+            .count();
+    long dur = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count();
+    times.push_back(dur - dur1);
+  }
+}
 
-  std::cout << "gen time2: " << dur2 << std::endl;
+int main() {
+  const int num_threads = 1;
+  const int num_ops = 1000000;
+  std::vector<std::thread> threads;
+  std::vector<std::vector<long>> times_vec(num_threads);
 
-  std::cout << "chrono timing time:" << dur2 - dur1 << std::endl;
+  for (int i = 0; i < num_threads; i++) {
+    std::thread th(runFun, num_ops, ref(times_vec[i]));
+    threads.push_back(std::move(th));
+  }
 
-  start1 = std::chrono::high_resolution_clock::now();
+  for (auto& i : threads) {
+    i.join();
+  }
 
-  { DECL_TIMER("f"); }
+  long long full = 0;
 
-  end1 = std::chrono::high_resolution_clock::now();
-  dur1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end1 - start1)
-             .count();
+  for (auto& times : times_vec) {
+    for (auto& time : times) {
+      full += time;
+    }
+  }
+  std::cout << "full:" << full << std::endl;
 
-  std::cout << "timer creation time: " << dur1 << std::endl;
-  PRINT_STAT(std::cout);
+  long long aver = full / (num_ops * num_threads);
+  std::cout << "aver:" << aver << std::endl;
+
+  long long disp = 0;
+  for (auto& times : times_vec) {
+    for (auto& time : times) {
+      disp += (time - aver) * (time - aver);
+    }
+  }
+  disp = disp / (num_ops * num_threads);
+  std::cout << "disp:" << disp << std::endl;
+
   return 0;
 }
